@@ -4,6 +4,8 @@ A mobile-first companion web app for **Pandemic Legacy: Season 0**. Track the Th
 
 **Live app:** [michaellomuscio.github.io/pandemic-s0-threat-watch](https://michaellomuscio.github.io/pandemic-s0-threat-watch/)
 
+Installable as a PWA on iOS/Android — "Add to Home Screen" gives you an offline app.
+
 ## Why this exists
 
 In Pandemic Legacy: Season 0, the Threat Deck is the deck you draw from at the end of each turn to place Soviet surveillance on cities. When an **Incident** triggers, the entire discard pile is shuffled and placed *back on top of the deck* — meaning the cities you've seen this round are the next ones coming up.
@@ -12,16 +14,22 @@ Knowing which cities are in that "on top" pile is a huge strategic advantage. Th
 
 ## What it does
 
-- All 48 base-game cities visualised the way they look on the board — region pattern, faction symbol (◆ NATO · 🌐 UN · ☭ SSR), city label.
-- Three live zones:
-  - **On Top of Deck** — cards that just came back from a reshuffle. These come up next. Tap when drawn.
-  - **Threat Deck** — face-down cards still unseen. Filter by faction or region, or search by name.
-  - **Discard** — cards drawn since the last Incident, newest first.
-- One-tap **INCIDENT** button that moves the discard pile onto the "On Top" zone (with a stratum badge per Incident, so successive reshuffles stack correctly).
-- **Long-press** a card to remove it from the deck (Pandemic Legacy events sometimes do this permanently).
-- **Undo** the last action.
-- **New Game** to clear state.
-- State persists in `localStorage`, so a refresh or accidental close doesn't lose your tracker.
+### The simple flow (default view)
+- All 48 base-game cities, styled like the actual board — region pattern, faction icon (◆ NATO · ◯ UN · ★ SSR), city label.
+- **Tap a city** → moves it to the Discard pile.
+- **Press ⚠ INCIDENT** → the Discard pile reshuffles onto "On Top of Deck."
+- **Tap On-Top cards** as they come up — these are the only cards that can come out until the pile is empty.
+- **Long-press** a card → opens an inspector with details and actions (adjust surveillance, toggle safehouse, remove from deck).
+- **Undo / New Game** buttons in the bottom action bar.
+- State persists in `localStorage`. A refresh or accidental close doesn't lose your tracker.
+
+### Power-user features (opt-in, hidden by default)
+- **Campaign tracker** — current month (Prologue → December) and threat-level escalation track (2/2/2/3/3/4 draw rate). Toggle on with the small "⊞ Campaign tracker" button up top.
+- **Surveillance auto-track** — when ON, drawing a card auto-increments that city's surveillance counter (0–3 dots). Off by default; flip the "Auto-surveillance" checkbox to enable.
+- **Filters** — narrow the deck by faction (NATO/UN/SSR) or region. Hidden behind a "⌖ Filters" toggle next to the search bar.
+- **Action log** — collapsible history of every action taken this session. Toggle from the bottom-right log chip.
+- **Probability + faction summary** — when there are cards "On Top of Deck," each stratum gets a banner showing % chance per card and (for 4+ cards) the faction mix coming up.
+- **Stratified Incidents** — each reshuffle gets its own #1/#2/#3 badge so when multiple Incidents stack, you can still see which cards came from which reshuffle.
 
 ## How to play with it
 
@@ -43,7 +51,9 @@ The visual language is Cold-War declassified-dossier: navy briefing-room backgro
 
 ## Tech
 
-Vanilla HTML / CSS / JS. No framework, no build step, no dependencies, no tracking. The whole thing is three files plus a README — open `index.html` to run it. Served via GitHub Pages.
+Vanilla HTML / CSS / JS. No framework, no build step, no dependencies, no tracking. Three files of source plus a service worker and a manifest for the PWA — open `index.html` to run it locally. Served via GitHub Pages.
+
+The service worker caches the app shell, so once you've opened the app once it works fully offline. Bump the `CACHE_VERSION` in `sw.js` when releasing a new build.
 
 ## Future ideas
 
