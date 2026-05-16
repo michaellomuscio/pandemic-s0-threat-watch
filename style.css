@@ -1,0 +1,853 @@
+/* ============================================================
+   OPERATION: THREAT WATCH
+   Pandemic Legacy: Season 0 — Threat Deck Tracker
+   Cold-War declassified-dossier aesthetic
+   ============================================================ */
+
+:root {
+  /* Briefing-room palette */
+  --bg-deep: #0F1626;
+  --bg-deeper: #080E1B;
+  --paper: #E6D9B9;
+  --paper-shade: #C8B889;
+  --paper-edge: #8A7B4E;
+  --ink: #1A1A1A;
+  --ink-soft: #2F2A22;
+  --rule: #6C5E32;
+
+  /* Faction inks */
+  --nato: #1E5F9E;
+  --nato-deep: #133C66;
+  --un: #5F8B43;
+  --un-deep: #3F5E2C;
+  --ssr: #B83229;
+  --ssr-deep: #7A1E16;
+
+  --accent-gold: #C9A227;
+  --accent-warning: #E69417;
+
+  /* Region tile colors (match the actual board) */
+  --na: #C9B6D9;        /* lavender */
+  --na-line: rgba(255,255,255,0.55);
+  --sa: #CBDEE7;        /* powder blue */
+  --sa-line: rgba(255,255,255,0.65);
+  --europe: #D4B779;    /* gold */
+  --europe-line: rgba(255,255,255,0.55);
+  --africa: #CFE0AA;    /* light green */
+  --africa-line: rgba(255,255,255,0.60);
+  --asia: #D9BA8C;      /* warm tan */
+  --asia-line: rgba(255,255,255,0.55);
+  --pacific: #EBC0A6;   /* salmon */
+  --pacific-line: rgba(255,255,255,0.55);
+
+  --shadow-paper: 0 1px 0 rgba(0,0,0,0.25), 0 6px 14px rgba(0,0,0,0.35);
+  --shadow-card: 0 1px 0 rgba(0,0,0,0.2), 0 4px 10px rgba(0,0,0,0.35);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-deep);
+  color: var(--ink);
+  font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  /* Subtle paper-grain on dark background */
+  background:
+    radial-gradient(circle at 10% 0%, rgba(255,255,255,0.04), transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(255,255,255,0.03), transparent 50%),
+    var(--bg-deep);
+  min-height: 100vh;
+  padding-bottom: 120px; /* clearance for the sticky ops panel */
+}
+
+::selection { background: var(--accent-gold); color: var(--ink); }
+
+/* ============================================================
+   Dossier — the manila folder
+   ============================================================ */
+
+.dossier {
+  max-width: 980px;
+  margin: 0 auto;
+  background: var(--paper);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0,0,0,0.012) 0 2px, transparent 2px 4px),
+    radial-gradient(circle at 20% 15%, rgba(255,255,255,0.55), transparent 35%),
+    radial-gradient(circle at 80% 85%, rgba(0,0,0,0.07), transparent 40%);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.2),
+    0 6px 20px rgba(0,0,0,0.5);
+  position: relative;
+  overflow: hidden;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+@media (min-width: 700px) {
+  .dossier {
+    margin: 24px auto;
+    border-radius: 4px;
+  }
+}
+
+/* ============================================================
+   Briefing header (the dossier cover)
+   ============================================================ */
+
+.briefing {
+  position: relative;
+  padding: 24px 20px 18px;
+  border-bottom: 2px solid var(--rule);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.20), transparent 60%),
+    repeating-linear-gradient(135deg, rgba(0,0,0,0.018) 0 12px, transparent 12px 24px);
+}
+
+.briefing-meta {
+  font-family: 'Special Elite', 'Courier New', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  margin: 0 0 6px;
+  text-transform: uppercase;
+}
+
+.redacted {
+  background: var(--ink);
+  color: var(--ink);
+  padding: 0 4px;
+  user-select: none;
+}
+
+.briefing h1 {
+  font-family: 'Bebas Neue', 'Arial Narrow', sans-serif;
+  font-size: 40px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  margin: 4px 0 8px;
+  color: var(--ink);
+  text-transform: uppercase;
+}
+
+.subtitle {
+  font-family: 'Special Elite', 'Courier New', monospace;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+/* Red ink stamps, slightly off-register */
+.stamp {
+  position: absolute;
+  font-family: 'Special Elite', 'Courier New', monospace;
+  font-weight: 700;
+  color: var(--ssr);
+  border: 3px solid var(--ssr);
+  padding: 4px 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.78;
+  transform: rotate(-8deg);
+  pointer-events: none;
+  font-size: 13px;
+  background: rgba(184,50,41,0.04);
+  box-shadow: inset 0 0 0 1px rgba(184,50,41,0.4);
+}
+
+.stamp-classified {
+  top: 16px;
+  right: 14px;
+  transform: rotate(6deg);
+  font-size: 14px;
+}
+
+.stamp-eyesonly {
+  bottom: 8px;
+  right: 26px;
+  transform: rotate(-4deg);
+  font-size: 10px;
+  opacity: 0.55;
+}
+
+/* ============================================================
+   Status strip — counts
+   ============================================================ */
+
+.status-strip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  background: var(--bg-deep);
+  color: var(--paper);
+  padding: 0;
+  border-bottom: 2px solid var(--rule);
+}
+
+.status-cell {
+  padding: 10px 6px;
+  text-align: center;
+  border-right: 1px solid rgba(255,255,255,0.07);
+}
+
+.status-cell:last-child { border-right: none; }
+
+.status-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  margin-bottom: 2px;
+}
+
+.status-value {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  line-height: 1;
+  color: var(--paper);
+}
+
+.status-value-red { color: var(--ssr); }
+
+.status-cell-peek .status-value { color: var(--accent-warning); }
+
+@media (max-width: 480px) {
+  .status-value { font-size: 22px; }
+  .status-label { font-size: 9px; }
+  .status-cell { padding: 8px 4px; }
+}
+
+/* ============================================================
+   Zones (sections)
+   ============================================================ */
+
+.zone {
+  padding: 16px 16px 12px;
+  border-bottom: 1px dashed var(--paper-edge);
+  position: relative;
+}
+
+.zone:last-of-type { border-bottom: none; }
+
+.zone-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.zone-header h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 0.05em;
+  margin: 0;
+  color: var(--ink);
+  text-transform: uppercase;
+}
+
+.zone-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 6px;
+  border: 1px solid var(--rule);
+  color: var(--ink-soft);
+  background: rgba(255,255,255,0.25);
+  border-radius: 2px;
+}
+
+.zone-tag-warning {
+  border-color: var(--ssr);
+  color: var(--ssr);
+  background: rgba(184,50,41,0.08);
+}
+
+.zone-hint {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  margin: 4px 0 10px;
+  line-height: 1.5;
+}
+
+.zone-peek {
+  background:
+    linear-gradient(180deg, rgba(184,50,41,0.10), transparent 60%),
+    repeating-linear-gradient(45deg, rgba(184,50,41,0.05) 0 8px, transparent 8px 16px);
+  border-bottom: 2px solid var(--ssr);
+  border-top: 2px solid var(--ssr);
+}
+
+.zone-peek .zone-header h2 {
+  color: var(--ssr-deep);
+}
+
+/* ============================================================
+   Controls (search + filters)
+   ============================================================ */
+
+.controls {
+  margin-bottom: 12px;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  background: rgba(255,255,255,0.55);
+  border: 1px solid var(--paper-edge);
+  border-radius: 2px;
+  padding: 6px 10px;
+  margin-bottom: 8px;
+}
+
+.search-icon {
+  font-size: 18px;
+  color: var(--ink-soft);
+  margin-right: 8px;
+}
+
+.search input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  color: var(--ink);
+  min-width: 0;
+}
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.filter-btn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 6px 10px;
+  border: 1px solid var(--paper-edge);
+  background: rgba(255,255,255,0.4);
+  color: var(--ink-soft);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.filter-btn:hover {
+  background: rgba(255,255,255,0.65);
+}
+
+.filter-btn.filter-active {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+.filter-nato.filter-active { background: var(--nato); border-color: var(--nato); }
+.filter-un.filter-active { background: var(--un); border-color: var(--un); }
+.filter-ssr.filter-active { background: var(--ssr); border-color: var(--ssr); }
+
+/* ============================================================
+   Card grid + city cards
+   ============================================================ */
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+  gap: 10px;
+  align-content: start;
+}
+
+@media (min-width: 600px) {
+  .card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+    gap: 12px;
+  }
+}
+
+.card {
+  position: relative;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  aspect-ratio: 5 / 4;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: left;
+  background: var(--paper-shade);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.2s ease;
+}
+
+.card:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+.card:focus-visible {
+  outline: 3px solid var(--accent-gold);
+  outline-offset: 2px;
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 6px 6px 0;
+  gap: 4px;
+}
+
+.card-faction-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bg-deep);
+  color: var(--paper);
+  font-size: 13px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.card-faction-nato .card-faction-icon {
+  background: var(--bg-deep);
+  color: #6CB1FF;
+}
+
+.card-faction-un .card-faction-icon {
+  background: var(--bg-deep);
+  color: var(--paper);
+}
+
+.card-faction-ssr .card-faction-icon {
+  background: var(--bg-deep);
+  color: var(--ssr);
+}
+
+.card-dots {
+  display: inline-flex;
+  gap: 2px;
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+.card-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.85);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25);
+}
+
+.card-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--paper);
+  background: var(--bg-deeper);
+  padding: 4px 6px;
+  margin: 0;
+  text-align: center;
+  word-break: break-word;
+  line-height: 1.1;
+}
+
+.card-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: var(--ssr);
+  color: var(--paper);
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 700;
+  font-size: 10px;
+  padding: 2px 5px;
+  border-radius: 2px;
+  letter-spacing: 0.04em;
+  z-index: 2;
+}
+
+/* Region patterns — match the actual Pandemic Legacy S0 board */
+.card-region-na {
+  background:
+    repeating-linear-gradient(135deg, transparent 0 6px, var(--na-line) 6px 11px),
+    var(--na);
+}
+
+.card-region-sa {
+  background:
+    radial-gradient(circle at 50% 50%, var(--sa-line) 2.5px, transparent 3px) 0 0/12px 12px,
+    var(--sa);
+}
+
+.card-region-europe {
+  background:
+    repeating-linear-gradient(45deg, transparent 0 9px, var(--europe-line) 9px 11px),
+    repeating-linear-gradient(-45deg, transparent 0 9px, var(--europe-line) 9px 11px),
+    var(--europe);
+}
+
+.card-region-africa {
+  background:
+    radial-gradient(circle at 50% 50%, var(--africa-line) 3px, transparent 4px) 0 0/13px 13px,
+    var(--africa);
+}
+
+.card-region-asia {
+  background:
+    repeating-radial-gradient(circle at 0 50%, transparent 0 7px, var(--asia-line) 7px 9px),
+    var(--asia);
+}
+
+.card-region-pacific {
+  background:
+    repeating-radial-gradient(circle at 0 50%, transparent 0 7px, var(--pacific-line) 7px 9px),
+    var(--pacific);
+}
+
+/* Faction icon variants — diamond, globe, hammer-and-sickle */
+.card-faction-nato .card-faction-icon::before { content: "◆"; font-size: 14px; }
+.card-faction-un .card-faction-icon::before { content: "🌐"; font-size: 12px; }
+.card-faction-ssr .card-faction-icon::before { content: "☭"; font-size: 16px; }
+
+/* Card zone variants */
+.card-zone-deck { /* default look */ }
+
+.card-zone-peek {
+  outline: 3px solid var(--accent-warning);
+  outline-offset: -3px;
+  animation: peek-glow 1.8s ease-in-out infinite;
+}
+
+@keyframes peek-glow {
+  0%, 100% { box-shadow: var(--shadow-card), 0 0 0 0 rgba(230,148,23,0.4); }
+  50% { box-shadow: var(--shadow-card), 0 0 0 6px rgba(230,148,23,0); }
+}
+
+.card-zone-discard {
+  opacity: 0.62;
+  filter: saturate(0.7);
+}
+
+.card-zone-discard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(45deg, rgba(184,50,41,0.10) 0 8px, transparent 8px 16px);
+  pointer-events: none;
+}
+
+.card-zone-removed {
+  opacity: 0.35;
+  filter: grayscale(0.8);
+}
+
+.card-zone-removed::after {
+  content: "DESTROYED";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-10deg);
+  font-family: 'Special Elite', monospace;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--ssr);
+  border: 2px solid var(--ssr);
+  padding: 2px 6px;
+  letter-spacing: 0.08em;
+  background: rgba(230,217,185,0.85);
+  pointer-events: none;
+}
+
+/* Empty-state placeholder */
+.empty-state {
+  font-family: 'Special Elite', monospace;
+  font-size: 12px;
+  color: var(--ink-soft);
+  padding: 16px;
+  text-align: center;
+  border: 1px dashed var(--paper-edge);
+  border-radius: 2px;
+  background: rgba(255,255,255,0.2);
+  grid-column: 1 / -1;
+}
+
+/* ============================================================
+   Stratum dividers in the peek zone
+   ============================================================ */
+
+.stratum-divider {
+  grid-column: 1 / -1;
+  font-family: 'Special Elite', monospace;
+  font-size: 11px;
+  color: var(--ssr-deep);
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  padding: 6px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stratum-divider::before,
+.stratum-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: repeating-linear-gradient(90deg, var(--ssr) 0 4px, transparent 4px 8px);
+}
+
+/* ============================================================
+   Info panel
+   ============================================================ */
+
+.zone-info {
+  padding-top: 8px;
+}
+
+.zone-info details {
+  border: 1px solid var(--paper-edge);
+  border-radius: 2px;
+  background: rgba(255,255,255,0.28);
+  padding: 0;
+}
+
+.zone-info summary {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 0.05em;
+  padding: 10px 14px;
+  cursor: pointer;
+  list-style: none;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.zone-info summary::after {
+  content: " ▸";
+  display: inline-block;
+  transition: transform 0.2s;
+}
+
+.zone-info details[open] summary::after {
+  transform: rotate(90deg);
+}
+
+.info-body {
+  padding: 0 14px 12px;
+  font-size: 13px;
+}
+
+.info-body ol {
+  padding-left: 22px;
+}
+
+.info-body li {
+  margin-bottom: 4px;
+}
+
+.info-note {
+  font-family: 'Special Elite', monospace;
+  font-size: 12px;
+  color: var(--ink-soft);
+  border-top: 1px dashed var(--paper-edge);
+  padding-top: 8px;
+  margin-top: 8px;
+}
+
+/* ============================================================
+   Footer
+   ============================================================ */
+
+.footer-meta {
+  padding: 16px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--ink-soft);
+  border-top: 1px dashed var(--paper-edge);
+}
+
+.footer-meta a {
+  color: var(--ssr-deep);
+  text-decoration: underline;
+}
+
+.footer-tag {
+  font-family: 'Special Elite', monospace;
+  font-size: 10px;
+  opacity: 0.7;
+  margin-top: 6px;
+}
+
+/* ============================================================
+   Sticky ops panel (bottom action bar)
+   ============================================================ */
+
+.ops-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-deeper);
+  border-top: 2px solid var(--rule);
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 8px;
+  z-index: 50;
+  box-shadow: 0 -8px 24px rgba(0,0,0,0.45);
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 12px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  color: var(--paper);
+  background: var(--ink-soft);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform 0.08s ease, opacity 0.2s ease, background 0.12s ease;
+  line-height: 1;
+  min-height: 56px;
+}
+
+.btn:active { transform: translateY(1px) scale(0.99); }
+
+.btn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.btn-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.btn-text {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.btn-label { font-size: 18px; }
+
+.btn-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.10em;
+  opacity: 0.8;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.btn-incident {
+  background: var(--ssr);
+  color: var(--paper);
+  box-shadow: 0 -2px 0 var(--ssr-deep) inset, var(--shadow-card);
+}
+
+.btn-incident:hover { background: #C73C32; }
+
+.btn-secondary {
+  background: var(--ink-soft);
+  color: var(--paper);
+}
+
+.btn-danger {
+  background: transparent;
+  color: var(--paper);
+  border: 1px solid rgba(255,255,255,0.25);
+}
+
+.btn-danger:hover { background: rgba(255,255,255,0.06); }
+
+@media (max-width: 380px) {
+  .btn-label { font-size: 15px; }
+  .btn-sub { font-size: 8px; }
+  .btn { padding: 10px 6px; min-height: 50px; }
+  .btn-incident .btn-icon { font-size: 18px; }
+}
+
+/* ============================================================
+   Toast (transient feedback)
+   ============================================================ */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 140px;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--ink);
+  color: var(--paper);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  padding: 10px 16px;
+  border-radius: 3px;
+  border-left: 3px solid var(--accent-gold);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 60;
+  max-width: 90vw;
+  text-align: center;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+}
+
+.toast.toast-show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.toast.toast-warning {
+  border-left-color: var(--ssr);
+}
+
+/* ============================================================
+   Mobile-tightening
+   ============================================================ */
+
+@media (max-width: 480px) {
+  .briefing h1 { font-size: 32px; }
+  .zone { padding: 12px 12px 10px; }
+  .card-grid { gap: 8px; }
+  .card-name { font-size: 12px; padding: 3px 4px; }
+  .card-faction-icon { width: 20px; height: 20px; font-size: 11px; }
+}
+
+/* Hide elements until JS hydrates */
+.card-grid:empty + .empty-state { display: block; }

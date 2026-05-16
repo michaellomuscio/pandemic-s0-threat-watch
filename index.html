@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0F1626">
+  <meta name="description" content="Mobile companion app for Pandemic Legacy: Season 0 — track the Threat Deck and Incident reshuffles.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Threat Watch">
+  <title>OPERATION: THREAT WATCH — Pandemic Legacy S0 Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;700&family=Special+Elite&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230F1626'/%3E%3Ctext x='32' y='44' font-family='monospace' font-size='40' fill='%23B83229' text-anchor='middle' font-weight='bold'%3E%E2%98%AD%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+  <div class="dossier">
+
+    <header class="briefing">
+      <div class="stamp stamp-classified">CLASSIFIED</div>
+      <div class="stamp stamp-eyesonly">EYES ONLY</div>
+      <div class="briefing-inner">
+        <p class="briefing-meta">FILE&nbsp;NO.&nbsp;CIA-MEDUSA-1962 · CLEARANCE: <span class="redacted">XXXXXXXX</span></p>
+        <h1>Operation: Threat Watch</h1>
+        <p class="subtitle">Pandemic Legacy: Season 0 — Threat Deck companion · 1962</p>
+      </div>
+    </header>
+
+    <div class="status-strip" role="status" aria-label="Deck state">
+      <div class="status-cell">
+        <div class="status-label">In Deck</div>
+        <div class="status-value" id="count-deck">48</div>
+      </div>
+      <div class="status-cell status-cell-peek">
+        <div class="status-label">On Top</div>
+        <div class="status-value" id="count-peek">0</div>
+      </div>
+      <div class="status-cell">
+        <div class="status-label">Discard</div>
+        <div class="status-value" id="count-discard">0</div>
+      </div>
+      <div class="status-cell">
+        <div class="status-label">Removed</div>
+        <div class="status-value" id="count-removed">0</div>
+      </div>
+      <div class="status-cell status-cell-stamp">
+        <div class="status-label">Incidents</div>
+        <div class="status-value status-value-red" id="count-incidents">0</div>
+      </div>
+    </div>
+
+    <section class="zone zone-peek" id="zone-peek">
+      <header class="zone-header">
+        <h2>On Top of Deck</h2>
+        <span class="zone-tag zone-tag-warning">PRIORITY INTEL</span>
+      </header>
+      <p class="zone-hint">Shuffled-back cards. <strong>These come up next</strong>, in unknown order. Tap a card when it's drawn.</p>
+      <div class="card-grid card-grid-peek" id="peek-grid">
+        <div class="empty-state">No active intel. After an Incident, reshuffled cards will appear here.</div>
+      </div>
+    </section>
+
+    <section class="zone zone-deck">
+      <header class="zone-header">
+        <h2>Threat Deck</h2>
+        <span class="zone-tag">FACE DOWN</span>
+      </header>
+      <p class="zone-hint">Cities still in the unseen deck. Tap a city to mark it drawn. Long-press to remove from deck (legacy event).</p>
+      <div class="controls">
+        <label class="search">
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input type="search" id="search-input" placeholder="Filter cities…" autocomplete="off" inputmode="search">
+        </label>
+        <div class="filter-bar" role="tablist" aria-label="Filter by faction">
+          <button class="filter-btn filter-active" data-filter-faction="all">ALL</button>
+          <button class="filter-btn filter-nato" data-filter-faction="nato">◆ NATO</button>
+          <button class="filter-btn filter-un" data-filter-faction="un">◯ UN</button>
+          <button class="filter-btn filter-ssr" data-filter-faction="ssr">☭ SSR</button>
+        </div>
+        <div class="filter-bar" role="tablist" aria-label="Filter by region">
+          <button class="filter-btn filter-active" data-filter-region="all">ALL REGIONS</button>
+          <button class="filter-btn" data-filter-region="na">N. AMERICA</button>
+          <button class="filter-btn" data-filter-region="sa">S. AMERICA</button>
+          <button class="filter-btn" data-filter-region="europe">EUROPE</button>
+          <button class="filter-btn" data-filter-region="africa">AFRICA</button>
+          <button class="filter-btn" data-filter-region="asia">ASIA</button>
+          <button class="filter-btn" data-filter-region="pacific">PACIFIC RIM</button>
+        </div>
+      </div>
+      <div class="card-grid card-grid-deck" id="deck-grid"></div>
+    </section>
+
+    <section class="zone zone-discard">
+      <header class="zone-header">
+        <h2>Discard Pile</h2>
+        <span class="zone-tag">RECENT DRAWS</span>
+      </header>
+      <p class="zone-hint">Cards drawn since the last Incident, newest first. Tap to return to the deck.</p>
+      <div class="card-grid card-grid-discard" id="discard-grid">
+        <div class="empty-state">No draws yet.</div>
+      </div>
+    </section>
+
+    <section class="zone zone-removed" id="zone-removed">
+      <header class="zone-header">
+        <h2>Removed from Play</h2>
+        <span class="zone-tag">DESTROYED</span>
+      </header>
+      <p class="zone-hint">Tap to restore to the deck.</p>
+      <div class="card-grid" id="removed-grid">
+        <div class="empty-state">Nothing removed.</div>
+      </div>
+    </section>
+
+    <section class="zone zone-info">
+      <details>
+        <summary>How this works</summary>
+        <div class="info-body">
+          <p>The <strong>Threat Deck</strong> is the deck you draw from each turn to place surveillance on cities. When a city's incident track fills, an <strong>Incident</strong> triggers — and the entire discard pile is shuffled and placed <em>back on top of the deck</em>.</p>
+          <p>That means the cards you've already seen since the last Incident are about to come up again. You don't know the order — but you know the set. That's intel you can plan around.</p>
+          <ol>
+            <li><strong>Tap</strong> a city when it's drawn → moves to Discard.</li>
+            <li><strong>Press INCIDENT</strong> when one triggers → Discard becomes the "On Top" pile.</li>
+            <li><strong>Tap "On Top"</strong> cards as they come up — these are the only cards that can come out until the pile is empty.</li>
+            <li><strong>Long-press</strong> a card to remove it from the deck (legacy events sometimes do this).</li>
+          </ol>
+          <p class="info-note">Multiple Incidents stack: cards from the most recent reshuffle come up <em>before</em> older "on top" cards. The badge on each card shows which Incident it came from.</p>
+        </div>
+      </details>
+    </section>
+
+    <footer class="footer-meta">
+      <p>OPERATION: THREAT WATCH · open source · <a href="https://github.com/michaellomuscio/pandemic-s0-threat-watch">source on GitHub</a></p>
+      <p class="footer-tag">Pandemic Legacy: Season 0 is © Z-Man Games. This is an unofficial fan-made tracker, not affiliated with the publisher.</p>
+    </footer>
+
+  </div>
+
+  <nav class="ops-panel" aria-label="Game actions">
+    <button id="incident-btn" class="btn btn-incident" type="button">
+      <span class="btn-icon" aria-hidden="true">⚠</span>
+      <span class="btn-text">
+        <span class="btn-label">Incident</span>
+        <span class="btn-sub">Reshuffle discard → top</span>
+      </span>
+    </button>
+    <button id="undo-btn" class="btn btn-secondary" type="button" disabled>
+      <span class="btn-icon" aria-hidden="true">↶</span>
+      <span class="btn-label">Undo</span>
+    </button>
+    <button id="reset-btn" class="btn btn-danger" type="button" title="Start a new campaign">
+      <span class="btn-icon" aria-hidden="true">⟳</span>
+      <span class="btn-label">New Game</span>
+    </button>
+  </nav>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
