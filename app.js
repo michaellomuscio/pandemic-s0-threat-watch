@@ -802,12 +802,32 @@ function registerSW() {
   navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW registration failed:', err));
 }
 
+// ----- Optional demo mode (for screenshots / testing) -----
+// Activate with ?demo=hud,filters,log,inspector:cairo
+function applyDemoFlags(flagsStr) {
+  const tokens = flagsStr.split(',').map(t => t.trim()).filter(Boolean);
+  tokens.forEach(token => {
+    if (token === 'hud') document.getElementById('hud-toggle')?.click();
+    else if (token === 'filters') document.getElementById('filters-toggle')?.click();
+    else if (token === 'log') document.getElementById('log-toggle')?.click();
+    else if (token.startsWith('inspector:')) {
+      const cityId = token.split(':')[1];
+      if (cityId && CITY_BY_ID[cityId]) openInspector(cityId);
+    }
+  });
+}
+
 // ----- Bootstrap -----
 function init() {
   loadState();
   wireEvents();
   render();
   registerSW();
+  // Demo flags (no effect in normal use)
+  try {
+    const demo = new URLSearchParams(location.search).get('demo');
+    if (demo) setTimeout(() => applyDemoFlags(demo), 80);
+  } catch (e) {}
 }
 
 if (document.readyState === 'loading') {
